@@ -1,3 +1,9 @@
+#---- VIRTUAL ENV SETUP -----
+#python -m venv ./venv
+
+# --- INSTALL COMMAND ----
+#python -m pip install -r reqs.txt
+
 numpy
 pandas
 mne
@@ -7,3 +13,9 @@ snirf
 nilearn
 pylsl
 scipy
+pylsl
+
+# Machine Learning
+scikit-learn
+tensorflow
+keras-tuner
