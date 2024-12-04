@@ -1,11 +1,8 @@
 import tensorflow as tf
-
-from keras._tf_keras.keras.models import Sequential
-from keras._tf_keras.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense, Dropout
-from keras._tf_keras.keras.utils import to_categorical
-
-#handle data
-
+from keras.models import Sequential
+from keras.layers import Conv1D, MaxPooling1D, Flatten, Dense, Dropout
+from keras.utils import to_categorical
+import numpy as np
 
 # Model
 model = Sequential([
@@ -24,16 +21,20 @@ model.compile(optimizer='adam',
               metrics=['accuracy'])
 model.summary()
 
-import numpy as np
-
 # Example data
 num_samples = 1000
+channels = 102
 timesteps = 100
-features = 3
-num_classes = 4
+classes = ["rest", "left", "right"]
+num_classes = len(classes)
+
+from segmentation import get_all_data
+
+
+#epoch data 
 
 # Generate random data
-X = np.random.rand(num_samples, timesteps, features)
+x = np.random.rand(num_samples, channels, timesteps)
 y = np.random.randint(0, num_classes, num_samples)
 
 # One-hot encode labels
@@ -41,13 +42,15 @@ y = to_categorical(y, num_classes=num_classes)
 
 # Train-test split
 from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2, random_state=42)
 
-history = model.fit(X_train, y_train, epochs=20, batch_size=32, validation_data=(X_test, y_test))
+history = model.fit(x_train, y_train, epochs=20, batch_size=32, validation_data=(x_val, y_val))
 
-loss, accuracy = model.evaluate(X_test, y_test)
+loss, accuracy = model.evaluate(x_val, y_val)
 print(f'Test Accuracy: {accuracy}')
 
+model_path = "models/model_01"
+model.save(model_path)
 
 import matplotlib.pyplot as plt
 
