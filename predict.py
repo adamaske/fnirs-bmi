@@ -68,6 +68,7 @@ def realtime_control():
         #preprocess data
         #Turn to hemoglobin
         #hb = np.array(hb)
+        #
         sample.reshape(-1, channels, timesteps)
 
         prediction = model.predict(sample)
