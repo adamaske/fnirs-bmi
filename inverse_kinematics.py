@@ -95,12 +95,15 @@ def Translation_Matrix(vec):
 
 def Get_Translation(transformation):
     return np.array(((transformation[0][3], transformation[1][3], transformation[2][3])))
-t1 = 4
+
+#Original thetas
+t1 = 0
 t2 = 0
 t3 = 0
 t4 = 0
-t5 = 20
-t6 = 0            
+t5 = 0.1
+t6 = 123      
+
 # a = r in my system
 link1 = DH_Param(t1, np.rad2deg(np.pi/2), 0, 0.089159)
 link2 = DH_Param(t2, 0, -0.425, 0)
@@ -109,7 +112,7 @@ link4 = DH_Param(t4, np.rad2deg(np.pi/2), 0, 0.10915)
 link5 = DH_Param(t5, np.rad2deg(-np.pi/2), 0, 0.09465)
 link6 = DH_Param(t6, 0, 0, 0.0823)
 
-T01 = DH_Translation_Matrix(link1)
+T01 = DH_Translation_Matrix(link1) #Translation matrices
 T12 = DH_Translation_Matrix(link2)
 T23 = DH_Translation_Matrix(link3)
 T34 = DH_Translation_Matrix(link4)
@@ -133,11 +136,10 @@ p05 = Get_Translation(P05)
 theta1 = np.arctan2(p05[1], p05[0]) + np.arccos(link4.m_d / (np.sqrt(np.square(p05[0]) + np.square(p05[1])))) + (np.pi /2)
 
 p06 = Get_Translation(T06)
-p16_z = p06[0]*np.sin(theta1) - p06[1]*np.cos(theta1)
-
+p16_z =  p06[0]*np.sin(theta1) - p06[1]*np.cos(theta1)
 theta5 = np.arccos(np.clip((p16_z - link4.m_d) / link6.m_d, a_min=-1, a_max=1))
 
-T61 = np.matmul(np.linalg.inv(T01), np.linalg.inv(T06))
+T61 = np.linalg.inv(np.matmul(np.linalg.inv(T01), T06))
 z_y = T61[1][2]
 z_x = T61[0][2]
 if theta5 == 0 or (z_y == 0 and z_x == 0):
@@ -146,25 +148,31 @@ if theta5 == 0 or (z_y == 0 and z_x == 0):
 else:
     theta6 = np.arctan2(-z_y/np.sin(theta5), z_x/np.sin(theta5))
 
-
 T16 = np.matmul(np.matmul(np.matmul(np.matmul(T12, T23), T34),  T45), T56)
 T14 = np.matmul(T16, np.linalg.inv(np.matmul(T45, T56)))
 P13 = np.matmul(T14, Translation_Matrix([0, -link4.m_d, 0, 1]))
-theta3 = np.arccos(np.square(np.linalg.norm(Get_Translation(P13))) / 2*link2.m_r) 
-theta2 = 0
+p13 = Get_Translation(P13)
+theta3 = np.arccos(np.clip((np.square(np.linalg.norm(p13)) - np.square(link2.m_r) - np.square(link3.m_r))/ (2*link2.m_r*link3.m_r), a_min=-1, a_max=1))
 
-theta4 = 0
+theta2 =  -np.arctan2(p13[1], -p13[0]) + np.arcsin((link3.m_r*np.sin(theta3)) / np.linalg.norm(p13))
+
+T34 = np.matmul(np.linalg.inv(np.matmul(T12, T23)), T14)
+
+theta4 = np.arctan2(T34[0][1], T34[0][0])
 
 print("theta 1 : ", np.round(np.rad2deg(theta1), 3)) #-7.1 off
+print("theta 2 : ", np.round(np.rad2deg(theta2), 3)) # 90 + 0.5xt6
+print("theta 3 : ", np.round(np.rad2deg(theta3), 3)) # 90 + 0.5xt6
+print("theta 4 : ", np.round(np.rad2deg(theta4), 3)) # 90 + 0.5xt6
 print("theta 5 : ", np.round(np.rad2deg(theta5), 3)) # 88.44 off 
 print("theta 6 : ", np.round(np.rad2deg(theta6), 3)) # 90 + 0.5xt6
 #calculate errors
-t1_error = t1 - np.round(np.rad2deg(theta1), 2)
-t2_error = t2 - np.round(np.rad2deg(theta2), 2)
-t3_error = t3 - np.round(np.rad2deg(theta3), 2)
-t4_error = t4 - np.round(np.rad2deg(theta4), 2)
-t5_error = t5 - np.round(np.rad2deg(theta5), 2)
-t6_error = t6 - np.round(np.rad2deg(theta6), 2)
+t1_error = t1 - np.round(np.rad2deg(theta1), 3)
+t2_error = t2 - np.round(np.rad2deg(theta2), 3)
+t3_error = t3 - np.round(np.rad2deg(theta3), 3)
+t4_error = t4 - np.round(np.rad2deg(theta4), 3)
+t5_error = t5 - np.round(np.rad2deg(theta5), 3)
+t6_error = t6 - np.round(np.rad2deg(theta6), 3)
 
 print("t1_error : ", t1_error)
 print("t2_error : ", t2_error)
@@ -173,6 +181,5 @@ print("t4_error : ", t4_error)
 print("t5_error : ", t5_error)
 print("t6_error : ", t6_error)
 
-exit()
 
     
