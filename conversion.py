@@ -8,24 +8,18 @@ def convert_all_files():
                    "data/subject01/2024-12-04_002/2024-12-04_002.snirf",
                    "data/subject01/2024-12-04_003/2024-12-04_003.snirf"
                    ]
-    subject02_files = ["data/subject02/2024-12-04_001/2024-12-04_004.snirf",
-                       "data/subject02/2024-12-04_002/2024-12-04_005.snirf",
-                       "data/subject02/2024-12-04_003/2024-12-04_006.snirf"
+    subject02_files = ["data/subject02/2024-12-04_004/2024-12-04_004.snirf",
                        ]
-    subject03_files = ["data/subject03/2024-12-04_001/2024-12-04_007.snirf",
-                       "data/subject03/2024-12-04_002/2024-12-04_008.snirf",
-                       "data/subject03/2024-12-04_003/2024-12-04_009.snirf"
+    subject03_files = ["data/subject03/2024-12-04_005/2024-12-04_005.snirf",
                        ]
-    subject04_files = ["data/subject04/2024-12-04_001/2024-12-04_010.snirf",
-                       "data/subject04/2024-12-04_002/2024-12-04_011.snirf",
-                       "data/subject04/2024-12-04_003/2024-12-04_012.snirf"
+    subject04_files = ["data/subject04/2024-12-04_006/2024-12-04_006.snirf",
+                       "data/subject04/2024-12-04_007/2024-12-04_007.snirf",
                        ]
 
     new_files = []
 
     subject_files = [subject01_files, subject02_files, subject03_files, subject04_files]
-    subjects = ["subject01"]
-
+    subjects = ["subject01", "subject02", "subject03", "subject04"]
     runs = ["run01", "run02", "run03", "run04", "run05", "run06", "run07", "run08", "run09"]
 
     for s in range(len(subjects)):

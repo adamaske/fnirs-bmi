@@ -10,6 +10,7 @@ from keras.models import Sequential, load_model
 from keras.layers import Conv1D, MaxPooling1D, Flatten, Dense, Dropout
 from keras.utils import to_categorical
 
+from inverse_kinematics import ik
 
 # Server
 server_host = '192.168.50.53'  # Localhost
@@ -21,44 +22,63 @@ print(f"Server listening on {server_host}:{server_port}...")
 client_socket, client_address = server_socket.accept() # Accept a connection from a client
 print(f"Connection established with {client_address}")
 
-# LSL Inlet
-inlet = StreamInlet(resolve_stream('type', 'fNIRS')[0])
+inlet = StreamInlet(resolve_stream('type', 'fNIRS')[0]) #connect to LSL stream
 
 
 #load model
-model_path = "models/model_01"
+model_path = "models/model_good"
 model = load_model(model_path)
 
-channel_count = 102
+channels = 102
 sampling_frequency = 5.1
+timesteps = 50
 recording = True
-while recording:
-    data = inlet.pull_sample()
+
+classes = ["rest", "right", "left"]
+
+home_position = np.array(((1, 2, 3))) # UR5e end-effector position at the home configuration
+desired_position = home_position
+def move_desired_position(direction):
     
-# read data
+    if direction == "right":
+        desired_position += np.array(((0, 0, 0)))
+    if direction == "left":
+        desired_position += np.array(((0, 0, 0)))
+        
+    return desired_position
 
-# preprocess data
+def send_desired_joing_angles(position):
+    thetas = ik(position) # calculate IK 
+    byte_data = struct.pack(f"<{len(thetas)}f", *thetas)
+    client_socket.sendall(byte_data)
+    print(f"predict -> Sent desired joint angles : {thetas}")
 
+def realtime_control():
+    while recording:
+        sample_count = 0
+        sample = []
 
-# segment data
+        while sample_count < timesteps:
+            data =  inlet.pull_sample()
+            sample.append(data)
+            sample_count += 1
+            
+        sample = np.array(sample)
 
+        #preprocess data
+        #Turn to hemoglobin
+        #hb = np.array(hb)
+        sample.reshape(-1, channels, timesteps)
 
-# model.predict()
+        prediction = model.predict(sample)
+        prediction_class = np.argmax(prediction, axis=1)
 
-# prediction 
-chosen_label = 0
+        new_position = move_desired_position(classes[prediction_class])
+        send_desired_joing_angles(desired_position)
 
-try:
-    while True:
-        # Prepare an array of floats to send
-        thetas = np.random.random(6)
-        #Convert the float array to bytes using struct (format 'f' for float)
-        byte_data = struct.pack(f"<6f", *thetas)
-        #Send the byte data to the client
-        client_socket.sendall(byte_data)
-        print(f"Sent floats: {thetas}")
-
-        x = input()
+try:  
+    realtime_control()
 except(KeyboardInterrupt):
-    client_socket.close()
-    server_socket.close()
+        client_socket.close()
+        server_socket.close()
+    
